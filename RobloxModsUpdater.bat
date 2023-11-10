@@ -8,9 +8,15 @@ set MultiSelection=""
 goto :DETECT
 
 :DETECT
-cd /d %LOCALAPPDATA%\Roblox\Versions
-for /f "delims=" %%i in ('dir /b /ad-h /t:c /od') do set a=%%i
-echo Most recent subfolder: %a%
+rem cd /d %LOCALAPPDATA%\Roblox\Versions
+rem for /f "delims=" %%i in ('dir /b /ad-h /t:c /od') do set a=%%i
+rem echo Most recent subfolder: %a%
+for /f "tokens=3" %%i in ('reg query "HKEY_CURRENT_USER\SOFTWARE\ROBLOX Corporation\Environments\roblox-player" /v version ^| find "version"') do set version=%%i
+cd /d %LOCALAPPDATA%\Roblox\Versions\%version%
+mkdir ..\backup\
+mkdir ..\RMUtmp\
+del /r /q ..\RMUtmp\*
+rem dir
 
 :SPLASH
 title Roblox Quality Of life Additions Script
@@ -51,7 +57,7 @@ goto :MAINMENU
 :INSTALL
 cls
 set SingleSelection=1
-title Install Section
+TITLE Install Section
 echo Install Section:
 echo ----------------------------------------------------------
 echo 1. ^<-- Go back (default)
@@ -70,24 +76,33 @@ if not defined var (
 goto :MAINMENU
 
 :OOF_install
-cls
-set LINKOOF=https://aasweb.epizy.com/static/ouch.ogg
-title Installing the OG Oof sound
+set LINKOOF=curl "http://aasweb.epizy.com/download.php?file=ouch.ogg&i=1" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0" -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8" -H "Accept-Language: es-MX,es;q=0.8,en-US;q=0.5,en;q=0.3" -H "Accept-Encoding: gzip, deflate, br" -H "DNT: 1" -H "Connection: keep-alive" -H "Referer: https://aasweb.epizy.com/download.php?file=ouch.ogg" -H "Cookie: __test=6b240188fb39e37b60774609b74dd197" -H "Upgrade-Insecure-Requests: 1" -H "Sec-Fetch-Dest: document" -H "Sec-Fetch-Mode: navigate" -H "Sec-Fetch-Site: same-origin" -H "TE: trailers" --output ..\RMUtmp\ouch.ogg
 
+cls
+title (1/3) [DOWNLOAD] Installing the OG Oof sound
 echo Step (1/3)
 echo Downloading the sound...
-powershell -c "Invoke-WebRequest -Uri '%LINKOOF%' -OutFile '%TEMP%\ouch.ogg'"
-timeout /t 1 > nul
+del ..\RMUtmp\ouch.ogg
+%LINKOOF%
 
 cls
+title (2/3) [BACKUP  ] Installing the OG Oof sound
 echo Step (2/3)
-echo Making a backup of the awful modern sound..
+echo Making a backup of the awful modern sound...
+copy .\content\sounds\ouch.ogg ..\backup\ouch.ogg
 
+cls
+title (3/3) [INSTALL ] Installing the OG Oof sound
+echo Step (3/3)
 echo Installing the og oof sound...
-goto %RETURN%
+copy /y ..\RMUtmp\ouch.ogg .\content\sounds\ouch.ogg
+echo Done.
+TIMEOUT /T -1
+
+::goto %RETURN%
 
 :RBXFPSUNLOCKER_install
-goto %RETURN%
+::goto %RETURN%
 
 :END
 endlocal
