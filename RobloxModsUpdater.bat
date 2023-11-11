@@ -12,10 +12,12 @@ rem cd /d %LOCALAPPDATA%\Roblox\Versions
 rem for /f "delims=" %%i in ('dir /b /ad-h /t:c /od') do set a=%%i
 rem echo Most recent subfolder: %a%
 for /f "tokens=3" %%i in ('reg query "HKEY_CURRENT_USER\SOFTWARE\ROBLOX Corporation\Environments\roblox-player" /v version ^| find "version"') do set version=%%i
+copy /y .\jq.exe %TEMP%\jq.exe
+mkdir %LOCALAPPDATA%\Roblox\Versions\backup\
+mkdir %LOCALAPPDATA%\Roblox\Versions\RMUtmp\
 cd /d %LOCALAPPDATA%\Roblox\Versions\%version%
-mkdir ..\backup\
-mkdir ..\RMUtmp\
-del /r /q ..\RMUtmp\*
+del /r /q %LOCALAPPDATA%\Roblox\Versions\RMUtmp\*
+copy /y %TEMP%\jq.exe %LOCALAPPDATA%\Roblox\Versions\RMUtmp\jq.exe
 rem dir
 
 :SPLASH
@@ -29,7 +31,7 @@ echo *                                                         *
 echo * If you paid for this script STOP IT as you were scammed *
 echo * And it could been maliciously infected.                 *
 echo ***********************************************************
-TIMEOUT /T 300
+TIMEOUT /T -1
 if %RETURN%=="" ( exit /b)
 goto %RETURN%
 
@@ -98,11 +100,55 @@ echo Installing the og oof sound...
 copy /y ..\RMUtmp\ouch.ogg .\content\sounds\ouch.ogg
 echo Done.
 TIMEOUT /T -1
-
-::goto %RETURN%
+goto %RETURN%
 
 :RBXFPSUNLOCKER_install
-::goto %RETURN%
+cls
+title (1/3) [DOWNLOAD] rbxfpsunlocker
+echo Step (1/3)
+echo Downloading lastest RBXFPSUNLOCKER zip
+echo Since this one does "nasty" stuff to unlock the fps
+echo your antivirus may get mad about it.
+echo Press a key when ready.
+mkdir ..\RMUtmp\fpsunlock\
+TIMEOUT /T -1
+
+REM GitHub repository URL of rbxfpsunlocker
+set repo_url=https://api.github.com/repos/axstin/rbxfpsunlocker/releases/latest
+
+REM Get the release information using the GitHub API
+for /f "delims=" %%i in ('curl -s %repo_url% ^| ..\RMUtmp\jq -r ".assets[0].browser_download_url"') do set download_url=%%i
+
+REM Extract the tag name for creating a directory
+for /f "delims=" %%i in ('curl -s %repo_url% ^| ..\RMUtmp\jq -r ".tag_name"') do set tag_name=%%i
+
+REM Download the zip file
+echo %download_url%
+curl -L %download_url% -o ..\RMUtmp\release.zip
+
+cls
+title (2/3) [EXTRACT ] rbxfpsunlocker
+echo Step (2/3)
+echo Extracting files
+REM Unzip the contents
+del /q ..\RMUtmp\fpsunlock\rbxfpsunlocker.exe
+powershell Expand-Archive -Path ..\RMUtmp\release.zip -DestinationPath ..\RMUtmp\fpsunlock
+
+
+REM Clean up the zip file
+del /q ..\RMUtmp\release.zip
+echo Downloaded and extracted the latest release to %tag_name% directory.
+
+cls
+title (3/3) [INSTALL ] rbxfpsunlocker
+echo Step (2/3)
+echo "Installing"(a.k.a adding to the startup)
+dir ..\RMUtmp\fpsunlock\
+copy /y ..\RMUtmp\fpsunlock\rbxfpsunlocker.exe "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\rbxfpsunlocker.exe"
+echo Done.
+TIMEOUT /T -1
+
+rem goto %RETURN%
 
 :END
 endlocal
